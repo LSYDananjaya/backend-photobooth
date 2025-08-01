@@ -39,7 +39,7 @@ app.config.from_object(config)
 # Update CORS configuration to allow credentials and all methods/headers for the specific origin
 CORS(
     app,
-    origins=config.CORS_ORIGINS,
+    resources={r"/api/*": {"origins": config.CORS_ORIGINS}},
     supports_credentials=True,
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
@@ -89,6 +89,14 @@ def start_cleanup_timer():
 
 # Start cleanup timer
 start_cleanup_timer()
+
+@app.route('/api/test-cors', methods=['GET', 'OPTIONS'])
+def test_cors():
+    """Test CORS configuration"""
+    return jsonify({
+        'status': 'success',
+        'message': 'CORS is working correctly'
+    })
 
 @app.route('/api/generate-session', methods=['POST'])
 def generate_session():
