@@ -4,7 +4,7 @@ import uuid
 import time
 import threading
 from datetime import datetime, timedelta
-from config import ProductionConfig, DevelopmentConfig
+from src.config import ProductionConfig, DevelopmentConfig
 
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -112,7 +112,7 @@ def generate_session():
     
     return jsonify({
         'session_id': session_id,
-        'qr_data': f"http://{get_local_ip()}:5000/mobile/{session_id}",
+        'qr_data': f"https://frontend-photobooth.vercel.app/mobile/{session_id}",
         'status': 'success'
     })
 
