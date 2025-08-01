@@ -4,30 +4,16 @@ import uuid
 import time
 import threading
 from datetime import datetime, timedelta
+from config import ProductionConfig, DevelopmentConfig
 
 # DON'T CHANGE THIS !!!
-# Add project root to path - works for both local and containerized environments
-current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir)
+sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
 
-# Try local-style import first, then fall back to absolute import
-try:
-    from config import ProductionConfig, DevelopmentConfig
-except ImportError:
-    from src.config import ProductionConfig, DevelopmentConfig
-    
 from flask import Flask, send_from_directory, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
-
-# Try local-style import first, then fall back to absolute import
-try:
-    from models.user import db
-    from routes.user import user_bp
-except ImportError:
-    from src.models.user import db
-    from src.routes.user import user_bp
+from src.models.user import db
+from src.routes.user import user_bp
 
 import socket
 
@@ -53,11 +39,10 @@ app.config.from_object(config)
 # Update CORS configuration to allow credentials and all methods/headers for the specific origin
 CORS(
     app,
-    resources={r"/*": {"origins": config.CORS_ORIGINS}},
+    resources={r"/api/*": {"origins": config.CORS_ORIGINS}},
     supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    expose_headers=["Access-Control-Allow-Origin"]
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
 )
 
 # Initialize SocketIO with the same allowed origins as CORS
@@ -113,18 +98,6 @@ def test_cors():
         'message': 'CORS is working correctly'
     })
 
-# Add a CORS preflight handler
-@app.after_request
-def after_request(response):
-    """Add CORS headers to every response"""
-    origin = request.headers.get('Origin')
-    if origin in config.CORS_ORIGINS:
-        response.headers.add('Access-Control-Allow-Origin', origin)
-        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
-        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
-        response.headers.add('Access-Control-Allow-Credentials', 'true')
-    return response
-
 @app.route('/api/generate-session', methods=['POST'])
 def generate_session():
     """Generate a new session for PC"""
@@ -139,7 +112,7 @@ def generate_session():
     
     return jsonify({
         'session_id': session_id,
-        'qr_data': f"https://frontend-photobooth.vercel.app/mobile/{session_id}",
+        'qr_data': f"https://backend-photobooth-production.up.railway.app/mobile/{session_id}",
         'status': 'success'
     })
 
@@ -332,14 +305,5 @@ def serve(path):
             return "index.html not found", 404
 
 if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
-else:
-    # When imported, only expose the necessary objects
-    if __name__ == 'src.main':
-        # This is when imported via 'from src.main import X'
-        pass
-    elif __name__ == 'main':
-        # This is when imported via 'from main import X'
-        pass
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
 
