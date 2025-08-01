@@ -4,6 +4,7 @@ import uuid
 import time
 import threading
 from datetime import datetime, timedelta
+from config import ProductionConfig, DevelopmentConfig
 
 # DON'T CHANGE THIS !!!
 sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
@@ -32,7 +33,10 @@ app = Flask(__name__, static_folder=os.path.join(os.path.dirname(__file__), 'sta
 app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 
 # Enable CORS for all routes
-CORS(app, cors_allowed_origins="*")
+config = ProductionConfig() if os.environ.get('FLASK_ENV') == 'production' else DevelopmentConfig()
+app.config.from_object(config)
+# Update CORS configuration
+CORS(app, origins=config.CORS_ORIGINS)
 
 # Initialize SocketIO
 socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
