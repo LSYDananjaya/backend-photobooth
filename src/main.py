@@ -35,11 +35,23 @@ app.config['SECRET_KEY'] = 'asdf#FGSgvasgf$5$WGT'
 # Enable CORS for all routes
 config = ProductionConfig() if os.environ.get('FLASK_ENV') == 'production' else DevelopmentConfig()
 app.config.from_object(config)
-# Update CORS configuration
-CORS(app, origins=config.CORS_ORIGINS)
 
-# Initialize SocketIO
-socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
+# Update CORS configuration to allow credentials and all methods/headers for the specific origin
+CORS(
+    app,
+    origins=config.CORS_ORIGINS,
+    supports_credentials=True,
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+)
+
+# Initialize SocketIO with the same allowed origins as CORS
+socketio = SocketIO(
+    app,
+    cors_allowed_origins=config.CORS_ORIGINS,
+    logger=True,
+    engineio_logger=True
+)
 
 app.register_blueprint(user_bp, url_prefix='/api')
 
