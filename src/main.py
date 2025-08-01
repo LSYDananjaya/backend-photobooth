@@ -112,7 +112,7 @@ def generate_session():
     
     return jsonify({
         'session_id': session_id,
-        'qr_data': f"http://{get_local_ip()}:5000/mobile/{session_id}",
+        'qr_data': f"https://backend-photobooth-production.up.railway.app/mobile/{session_id}",
         'status': 'success'
     })
 

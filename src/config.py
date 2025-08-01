@@ -4,6 +4,7 @@ class Config:
     SECRET_KEY = os.environ.get('SECRET_KEY') or 'your-secret-key-here'
     CORS_ORIGINS = ['https://frontend-photobooth.vercel.app', 'http://localhost:3000', 'http://localhost:5173']
 
+
 class ProductionConfig(Config):
     DEBUG = False
 
