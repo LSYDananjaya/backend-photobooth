@@ -53,10 +53,11 @@ app.config.from_object(config)
 # Update CORS configuration to allow credentials and all methods/headers for the specific origin
 CORS(
     app,
-    resources={r"/api/*": {"origins": config.CORS_ORIGINS}},
+    resources={r"/*": {"origins": config.CORS_ORIGINS}},
     supports_credentials=True,
-    allow_headers=["Content-Type", "Authorization"],
-    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allow_headers=["Content-Type", "Authorization", "Access-Control-Allow-Origin"],
+    methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    expose_headers=["Access-Control-Allow-Origin"]
 )
 
 # Initialize SocketIO with the same allowed origins as CORS
@@ -111,6 +112,18 @@ def test_cors():
         'status': 'success',
         'message': 'CORS is working correctly'
     })
+
+# Add a CORS preflight handler
+@app.after_request
+def after_request(response):
+    """Add CORS headers to every response"""
+    origin = request.headers.get('Origin')
+    if origin in config.CORS_ORIGINS:
+        response.headers.add('Access-Control-Allow-Origin', origin)
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization')
+        response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS')
+        response.headers.add('Access-Control-Allow-Credentials', 'true')
+    return response
 
 @app.route('/api/generate-session', methods=['POST'])
 def generate_session():
