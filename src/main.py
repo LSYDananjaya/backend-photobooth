@@ -4,16 +4,30 @@ import uuid
 import time
 import threading
 from datetime import datetime, timedelta
-from src.config import ProductionConfig, DevelopmentConfig
 
 # DON'T CHANGE THIS !!!
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
+# Add project root to path - works for both local and containerized environments
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir)
 
+# Try local-style import first, then fall back to absolute import
+try:
+    from config import ProductionConfig, DevelopmentConfig
+except ImportError:
+    from src.config import ProductionConfig, DevelopmentConfig
+    
 from flask import Flask, send_from_directory, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 from flask_cors import CORS
-from src.models.user import db
-from src.routes.user import user_bp
+
+# Try local-style import first, then fall back to absolute import
+try:
+    from models.user import db
+    from routes.user import user_bp
+except ImportError:
+    from src.models.user import db
+    from src.routes.user import user_bp
 
 import socket
 
@@ -305,5 +319,14 @@ def serve(path):
             return "index.html not found", 404
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True, allow_unsafe_werkzeug=True)
+    port = int(os.environ.get('PORT', 5000))
+    socketio.run(app, host='0.0.0.0', port=port, debug=False, allow_unsafe_werkzeug=True)
+else:
+    # When imported, only expose the necessary objects
+    if __name__ == 'src.main':
+        # This is when imported via 'from src.main import X'
+        pass
+    elif __name__ == 'main':
+        # This is when imported via 'from main import X'
+        pass
 
